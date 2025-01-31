@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,8 +24,9 @@ class FreeRDP(Tarball, CmakeProject):
         Project.__init__(
             self,
             "freerdp",
-            archive_url="https://github.com/FreeRDP/FreeRDP/releases/download/2.7.0/freerdp-2.7.0.tar.gz",
-            hash="89000728b6e66ac37db018d6dc5f0981b530fd550ab748877ff42892dd0c166b",
+            version="2.11.2",
+            archive_url="https://github.com/FreeRDP/FreeRDP/files/12670558/freerdp-{version}.tar.gz",
+            hash="17e36553065cb59126f8fee987ec74783db50232b361574dac86b7a768dea3b4",
             dependencies=[
                 "cmake",
                 "ninja",

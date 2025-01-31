@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -30,7 +28,7 @@ class CheckLibs(NullExpander, Meson):
                 # Used to build the various tests
                 "meson",
                 "ninja",
-                "pkg-config",
+                "pkgconf",
                 # libraries to test, hopefully all the one we build!
                 "atk",
                 "cairo",
@@ -50,6 +48,7 @@ class CheckLibs(NullExpander, Meson):
                 "zlib",
             ],
             version="0.1.0",
+            internal=True,
         )
 
     def build(self):

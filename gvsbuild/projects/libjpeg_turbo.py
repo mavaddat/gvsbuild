@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,8 +24,9 @@ class LibjpegTurbo(Tarball, CmakeProject):
         Project.__init__(
             self,
             "libjpeg-turbo",
-            archive_url="https://sourceforge.net/projects/libjpeg-turbo/files/2.1.3/libjpeg-turbo-2.1.3.tar.gz",
-            hash="467b310903832b033fe56cd37720d1b73a6a3bd0171dbf6ff0b620385f4f76d0",
+            version="3.1.0",
+            archive_url="https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/{version}/libjpeg-turbo-{version}.tar.gz",
+            hash="9564c72b1dfd1d6fe6274c5f95a8d989b59854575d4bbee44ade7bc17aa9bc93",
             dependencies=[
                 "cmake",
                 "ninja",

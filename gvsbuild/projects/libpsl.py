@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,19 +24,19 @@ class Libpsl(Tarball, Meson):
         Project.__init__(
             self,
             "libpsl",
-            archive_url="https://github.com/rockdaboot/libpsl/releases/download/0.21.1/libpsl-0.21.1.tar.gz",
-            hash="ac6ce1e1fbd4d0254c4ddb9d37f1fa99dec83619c1253328155206b896210d4c",
+            version="0.21.5",
+            archive_url="https://github.com/rockdaboot/libpsl/releases/download/{version}/libpsl-{version}.tar.gz",
+            hash="1dcc9ceae8b128f3c0b3f654decd0e1e891afc6ff81098f227ef260449dae208",
             dependencies=[
-                "python",
                 "meson",
                 "ninja",
-                "pkg-config",
+                "pkgconf",
                 "icu",
             ],
         )
 
         self.add_param("-Druntime=libicu")
-        self.add_param("-Dbuiltin=libicu")
+        self.add_param("-Dbuiltin=true")
 
     def build(self):
         Meson.build(self)

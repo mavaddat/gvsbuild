@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,8 +24,12 @@ class Libsoup2(Tarball, Meson):
         Project.__init__(
             self,
             "libsoup2",
-            archive_url="https://download.gnome.org/sources/libsoup/2.74/libsoup-2.74.2.tar.xz",
-            hash="f0a427656e5fe19e1df71c107e88dfa1b2e673c25c547b7823b6018b40d01159",
+            lastversion_major=2,
+            repository="https://gitlab.gnome.org/GNOME/libsoup",
+            version="2.74.3",
+            lastversion_even=True,
+            archive_url="https://download.gnome.org/sources/libsoup/{major}.{minor}/libsoup-{version}.tar.xz",
+            hash="e4b77c41cfc4c8c5a035fcdc320c7bc6cfb75ef7c5a034153df1413fa1d92f13",
             dependencies=[
                 "libxml2",
                 "glib-networking",
@@ -61,8 +63,12 @@ class Libsoup3(Tarball, Meson):
         Project.__init__(
             self,
             "libsoup3",
-            archive_url="https://download.gnome.org/sources/libsoup/3.0/libsoup-3.0.6.tar.xz",
-            hash="b45d59f840b9acf9bb45fd45854e3ef672f57e3ab957401c3ad8d7502ac23da6",
+            version="3.6.4",
+            lastversion_major=3,
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/libsoup",
+            archive_url="https://download.gnome.org/sources/libsoup/{major}.{minor}/libsoup-{version}.tar.xz",
+            hash="9b54c76f5276b05bebcaf2b6c2a141a188fc7bb1d0624eda259dac13a6665c8a",
             dependencies=[
                 "libxml2",
                 "glib-networking",
@@ -70,9 +76,6 @@ class Libsoup3(Tarball, Meson):
                 "libpsl",
                 "mit-kerberos",
                 "nghttp2",
-            ],
-            patches=[
-                "0001-server-message-proxy-the-peer-certificate-and-peer-c.patch",
             ],
         )
 

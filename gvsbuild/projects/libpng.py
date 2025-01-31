@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,13 +24,17 @@ class Libpng(Tarball, CmakeProject):
         Project.__init__(
             self,
             "libpng",
-            archive_url="http://prdownloads.sourceforge.net/libpng/libpng-1.6.37.tar.xz",
-            hash="505e70834d35383537b6491e7ae8641f1a4bed1876dbfe361201fc80868d88ca",
+            version="1.6.46",
+            repository="https://github.com/pnggroup/libpng",
+            archive_url="https://github.com/pnggroup/libpng/archive/v{version}.tar.gz",
+            archive_filename="libpng-{version}.tar.gz",
+            hash="767b01936f9620d4ab4cdf6ec348f6526f861f825648b610b1d604167dc738d2",
             dependencies=["cmake", "ninja", "zlib"],
         )
 
     def build(self):
-        CmakeProject.build(self, use_ninja=True)
+        cmake_params = '-DPNG_TOOLS=OFF -DPNG_TESTS=OFF -Dld-version-script=OFF -DPNG_DEBUG_POSTFIX=""'
+        CmakeProject.build(self, cmake_params=cmake_params, use_ninja=True)
 
         self.install_pc_files()
         self.install(r"LICENSE share\doc\libpng")

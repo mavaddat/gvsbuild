@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -27,9 +25,11 @@ class Icu(Tarball, Project):
         Project.__init__(
             self,
             "icu",
-            archive_url="https://github.com/unicode-org/icu/releases/download/release-71-1/icu4c-71_1-src.zip",
-            hash="40e9d2bab4819d50429b19419b2f330e36bd29a3ed85116d4d1709b3f5de0123",
-            version="71.1",
+            repository="https://github.com/unicode-org/icu",
+            version="76.1",
+            archive_url="https://github.com/unicode-org/icu/releases/download/release-{major}-{minor}/icu4c-{major}_{minor}-src.zip",
+            hash="14a1942185dda2c5a07bd74f20a220954a7d94149fb5ef3cc782b52d9817fb3f",
+            patches=["0001-Fix-circular-include-on-MS-Visual-Studio.patch"],
         )
 
     def build(self):
@@ -48,7 +48,7 @@ class Icu(Tarball, Project):
                 replace,
             )
 
-        self.exec_msbuild(r"source\allinone\allinone.sln /t:cal /t:MakeData")
+        self.exec_msbuild(r"source\allinone\allinone.sln /p:SkipUWP=true")
 
         if self.builder.opts.configuration == "debug":
             self.install_pc_files("pc-files-debug")

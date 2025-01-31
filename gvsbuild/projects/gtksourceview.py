@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,9 +24,13 @@ class GtkSourceView4(Tarball, Meson):
         Project.__init__(
             self,
             "gtksourceview4",
-            archive_url="https://download.gnome.org/sources/gtksourceview/4.8/gtksourceview-4.8.3.tar.xz",
-            hash="c30019506320ca2474d834cced1e2217ea533e00eb2a3f4eb7879007940ec682",
-            dependencies=["python", "meson", "ninja", "gtk3", "pkg-config"],
+            version="4.8.4",
+            lastversion_major=4,
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/gtksourceview",
+            archive_url="https://download.gnome.org/sources/gtksourceview/{major}.{minor}/gtksourceview-{version}.tar.xz",
+            hash="7ec9d18fb283d1f84a3a3eff3b7a72b09a10c9c006597b3fbabbb5958420a87d",
+            dependencies=["meson", "ninja", "gtk3", "pkgconf", "libxml2"],
         )
         if Project.opts.enable_gi:
             self.add_dependency("gobject-introspection")
@@ -47,9 +49,14 @@ class GtkSourceView5(Tarball, Meson):
         Project.__init__(
             self,
             "gtksourceview5",
-            archive_url="https://download.gnome.org/sources/gtksourceview/5.4/gtksourceview-5.4.2.tar.xz",
-            hash="ad140e07eb841910de483c092bd4885abd29baadd6e95fa22d93ed2df0b79de7",
-            dependencies=["python", "meson", "ninja", "gtk4", "pkg-config"],
+            version="5.14.2",
+            lastversion_major=5,
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/gtksourceview",
+            archive_url="https://download.gnome.org/sources/gtksourceview/{major}.{minor}/gtksourceview-{version}.tar.xz",
+            hash="1a6d387a68075f8aefd4e752cf487177c4a6823b14ff8a434986858aeaef6264",
+            dependencies=["meson", "ninja", "gtk4", "pkgconf", "libxml2"],
+            patches=[],
         )
         if Project.opts.enable_gi:
             self.add_dependency("gobject-introspection")

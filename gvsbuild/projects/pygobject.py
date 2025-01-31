@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,28 +12,34 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
-
+import sys
 from pathlib import Path
 
+from gvsbuild.utils.base_builders import Meson
 from gvsbuild.utils.base_expanders import Tarball
 from gvsbuild.utils.base_project import Project, project_add
 
 
 @project_add
-class PyGObject(Tarball, Project):
+class PyGObject(Tarball, Meson):
     def __init__(self):
         Project.__init__(
             self,
             "pygobject",
-            archive_url="https://download.gnome.org/sources/pygobject/3.42/pygobject-3.42.1.tar.xz",
-            hash="1f34b5f7624de35e44eb5a7eb428353285bd03004d55131a5f7f7fa9b90f3cc9",
-            dependencies=["python", "pycairo", "gobject-introspection", "libffi"],
+            version="3.50.0",
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/pygobject",
+            archive_url="https://download.gnome.org/sources/pygobject/{major}.{minor}/pygobject-{version}.tar.xz",
+            hash="8d836e75b5a881d457ee1622cae4a32bcdba28a0ba562193adb3bbb472472212",
+            dependencies=["pycairo", "gobject-introspection", "libffi"],
             patches=[
-                "pygobject_py3_8_load_dll.patch",
+                "001-pygobject-py38-load-dll.patch",
             ],
         )
 
     def build(self):
+        py_dir = Path(sys.executable).parent
+        Meson.build(self, meson_params=f'-Dpython="{py_dir}\\python.exe"')
         gtk_dir = self.builder.gtk_dir
         add_inc = [
             str(Path(gtk_dir) / "include" / "cairo"),
@@ -44,13 +48,13 @@ class PyGObject(Tarball, Project):
             str(Path(gtk_dir) / "lib" / "glib-2.0" / "include"),
         ]
         self.builder.mod_env("INCLUDE", ";".join(add_inc))
-        self.exec_vs(r"%(python_dir)s\python.exe -m build")
-        dist_dir = Path(self.build_dir) / "dist"
-        for path in dist_dir.rglob("*.whl"):
-            self.exec_vs(
-                r"%(python_dir)s\python.exe -m pip install --force-reinstall "
-                + str(path)
-            )
         if self.builder.opts.py_wheel:
-            self.install_dir("dist", "python")
+            self.exec_vs(r"%(python_dir)s\python.exe -m build --wheel")
+            dist_dir = Path(self.build_dir) / "dist"
+            for path in dist_dir.rglob("*.whl"):
+                self.exec_vs(
+                    r"%(python_dir)s\python.exe -m pip install --force-reinstall "
+                    + str(path)
+                )
+                self.install_dir("dist", "python")
         self.install(r".\COPYING share\doc\pygobject")

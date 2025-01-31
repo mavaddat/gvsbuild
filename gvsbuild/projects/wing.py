@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,9 +24,11 @@ class Wing(Tarball, Meson):
         Project.__init__(
             self,
             "wing",
-            archive_url="https://gitlab.gnome.org/GNOME/wing/-/archive/v0.3.16/wing-v0.3.16.tar.gz",
-            hash="adc881345acc13a4db8dbee28b178989175c3f3d5174e423b021a5a29c61225c",
-            dependencies=["ninja", "meson", "pkg-config", "glib"],
+            version="0.3.24",
+            repository="https://gitlab.gnome.org/GNOME/wing",
+            archive_url="https://gitlab.gnome.org/GNOME/wing/-/archive/v{version}/wing-v{version}.tar.gz",
+            hash="ea828739d77f1d1841863fddb693bf2ede9142ee47ba527f5946604a2635591e",
+            dependencies=["ninja", "meson", "pkgconf", "glib"],
         )
 
     def build(self):

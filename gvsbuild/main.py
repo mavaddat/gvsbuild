@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,6 +17,12 @@
 """Main build script."""
 
 # Verify we can import from the script directory
+import rich
+import typer
+
+from gvsbuild.deps import deps
+from gvsbuild.list import list_
+
 try:
     import gvsbuild.utils.utils  # noqa: F401
 except ImportError:
@@ -35,13 +39,28 @@ except ImportError:
 import gvsbuild.groups  # noqa: F401
 import gvsbuild.projects  # noqa: F401
 import gvsbuild.tools  # noqa: F401
-from gvsbuild.utils.parser import create_parser
+from gvsbuild.build import build
+from gvsbuild.info import version_callback
+from gvsbuild.outdated import outdated
+
+rich.reconfigure(markup=False)
+
+app = typer.Typer(help="Build GTK for Windows")
+app.command(help="")(build)
+app.command(help="")(outdated)
+app.command(help="", name="list")(list_)
+app.command(help="")(deps)
 
 
-def build():
-    parser = create_parser()
-    args = parser.parse_args()
-    if hasattr(args, "func"):
-        args.func(args)
-    else:
-        parser.print_help()
+@app.callback()
+def common(
+    ctx: typer.Context,
+    version: bool = typer.Option(
+        None, "--version", callback=version_callback, help="Show the app's version"
+    ),
+):
+    pass
+
+
+def run():
+    app()

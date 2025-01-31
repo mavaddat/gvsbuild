@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,43 +13,45 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from gvsbuild.utils.base_builders import Meson
 from gvsbuild.utils.base_expanders import Tarball
 from gvsbuild.utils.base_project import Project, project_add
 
 
 @project_add
-class Librsvg(Tarball, Project):
+class Librsvg(Tarball, Meson):
     def __init__(self):
         Project.__init__(
             self,
             "librsvg",
-            archive_url="https://download.gnome.org/sources/librsvg/2.54/librsvg-2.54.4.tar.xz",
-            hash="ea152a243f6a43c0e036a28c70de3fcbcdea5664c6811c78592bc229ecc24833",
+            version="2.59.2",
+            repository="https://gitlab.gnome.org/GNOME/librsvg",
+            archive_url="https://download.gnome.org/sources/librsvg/{major}.{minor}/librsvg-{version}.tar.xz",
+            hash="ecd293fb0cc338c170171bbc7bcfbea6725d041c95f31385dc935409933e4597",
             dependencies=[
                 "cargo",
                 "cairo",
                 "pango",
                 "gdk-pixbuf",
+                "libxml2",
+                "freetype",
             ],
-            patches=[],
         )
-        if Project.opts.enable_gi:
+
+        if self.opts.enable_gi:
             self.add_dependency("gobject-introspection")
+            enable_gi = "enabled"
+        else:
+            enable_gi = "disabled"
+
+        self.add_param(f"-Dintrospection={enable_gi}")
+        self.add_param("-Ddocs=disabled")
+        self.add_param("-Dtests=false")
+        self.add_param("-Dvala=disabled")
 
     def build(self):
-        self.builder.mod_env("INCLUDE", "include\\cairo", add_gtk=True)
-
-        b_dir = f"{self.builder.working_dir}\\{self.name}\\win32"
-
-        cmd = f'nmake -f makefile.vc CFG={self.builder.opts.configuration} PREFIX={self.builder.gtk_dir} PYTHON={Project.get_tool_executable("python")} install'
-
-        if Project.opts.enable_gi:
-            cmd += " INTROSPECTION=1"
-
-        self.push_location(b_dir)
-        self.exec_vs(cmd)
-        self.pop_location()
-
+        self.builder.exec_cargo("install cargo-c --locked")
+        Meson.build(self)
         self.install(r".\COPYING.LIB share\doc\librsvg")
 
     def post_install(self):

@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,9 +24,11 @@ class GSettingsDesktopSchemas(Tarball, Meson):
         Project.__init__(
             self,
             "gsettings-desktop-schemas",
-            archive_url="https://download.gnome.org/sources/gsettings-desktop-schemas/42/gsettings-desktop-schemas-42.0.tar.xz",
-            hash="6686335a9ed623f7ae2276fefa50a410d4e71d4231880824714070cb317323d2",
-            dependencies=["meson", "ninja", "pkg-config", "python", "glib"],
+            version="47.1",
+            repository="https://gitlab.gnome.org/GNOME/gsettings-desktop-schemas",
+            archive_url="https://download.gnome.org/sources/gsettings-desktop-schemas/{major}/gsettings-desktop-schemas-{version}.tar.xz",
+            hash="a60204d9c9c0a1b264d6d0d134a38340ba5fc6076a34b84da945d8bfcc7a2815",
+            dependencies=["meson", "ninja", "pkgconf", "glib"],
         )
         if self.opts.enable_gi:
             self.add_dependency("gobject-introspection")

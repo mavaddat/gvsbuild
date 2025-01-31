@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -31,7 +29,7 @@ def read_mark_file(directory, file_name=".wingtk-extracted-file"):
     """Read a single line from file, returning an empty string on error."""
     rt = ""
     try:
-        with open(os.path.join(directory, file_name)) as fi:
+        with open(os.path.join(directory, file_name), encoding="utf-8") as fi:
             rt = fi.readline().strip()
     except OSError as e:
         log.debug(f"Exception on reading from '{file_name}'")
@@ -42,7 +40,7 @@ def read_mark_file(directory, file_name=".wingtk-extracted-file"):
 
 def write_mark_file(directory, val, file_name=".wingtk-extracted-file"):
     """Write the value (filename or content hash) to the mark file."""
-    with open(os.path.join(directory, file_name), "wt") as fo:
+    with open(os.path.join(directory, file_name), "w", encoding="utf-8") as fo:
         fo.write(f"{val}\n")
 
 
@@ -89,11 +87,7 @@ def extract_exec(
                 tarinfo.linkname = "/".join(tarinfo.linkname.split("/")[1:])
             yield tarinfo
 
-    if dir_part:
-        full_dest = os.path.join(dest_dir, dir_part)
-    else:
-        full_dest = dest_dir
-
+    full_dest = os.path.join(dest_dir, dir_part) if dir_part else dest_dir
     if check_mark:
         rd_file = read_mark_file(full_dest)
         wr_file = os.path.basename(src)
@@ -193,7 +187,7 @@ def dirlist2set(st_dir, add_dirs=False, skipped_dir=None):
 def make_zip_hash(files):
     """Calculate an hash of all the files to put in a zip file."""
     hash_calc = hashlib.sha256()
-    for file_name in sorted(list(files)):
+    for file_name in sorted(files):
         # add also the file full path, to support only moving files in the zip
         hash_calc.update(file_name.lower().encode("utf-8"))
         if os.path.isfile(file_name):
@@ -214,7 +208,7 @@ def make_zip(name, files, skip_spc=0):
     """
     log.start_verbose(f"Creating zip file {name} with {len(files)} files")
     with zipfile.ZipFile(f"{name}.zip", "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for f in sorted(list(files)):
+        for f in sorted(files):
             zf.write(f, arcname=f[skip_spc:])
     log.end()
 
@@ -278,7 +272,7 @@ class GitRepo:
             self.builder.exec_msys(
                 f"git rev-parse --short HEAD >{of}", working_dir=src_dir
             )
-            with open(of) as fi:
+            with open(of, encoding="utf-8") as fi:
                 tag_name = fi.readline().rstrip("\n")
             os.remove(of)
 
@@ -341,7 +335,6 @@ class GitRepo:
         self.update_build_dir()
 
     def _update_dir(self, remove_dest=False):
-
         dest = os.path.join(self.opts.git_expand_dir, self.name)
         if (self.clean or remove_dest) and os.path.isdir(dest):
             rmtree_full(dest)

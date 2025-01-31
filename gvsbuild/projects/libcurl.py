@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -29,8 +27,10 @@ class Libcurl(Tarball, CmakeProject):
         Project.__init__(
             self,
             "libcurl",
-            archive_url="https://github.com/curl/curl/releases/download/curl-7_83_1/curl-7.83.1.tar.gz",
-            hash="93fb2cd4b880656b4e8589c912a9fd092750166d555166370247f09d18f5d0c0",
+            version="8.11.1",
+            repository="https://github.com/curl/curl",
+            archive_url="https://github.com/curl/curl/releases/download/curl-{major}_{minor}_{micro}/curl-{version}.tar.xz",
+            hash="c7ca7db48b0909743eaef34250da02c19bc61d4f1dcedd6603f109409536ab56",
             dependencies=[
                 "perl",
                 "cmake",

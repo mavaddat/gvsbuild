@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,11 +24,11 @@ class Emeus(GitRepo, Meson):
         Meson.__init__(
             self,
             "emeus",
+            repository="https://github.com/ebassi/emeus",
             repo_url="https://github.com/ebassi/emeus.git",
             fetch_submodules=False,
-            tag=None,
-            dependencies=["ninja", "meson", "pkg-config", "gtk3"],
-            patches=["00_win_no_script.patch"],
+            tag="master",
+            dependencies=["ninja", "meson", "pkgconf", "gtk3"],
         )
         if self.opts.enable_gi:
             self.add_dependency("gobject-introspection")

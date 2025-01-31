@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -39,8 +37,9 @@ class Fribidi(Tarball, Meson):
         Project.__init__(
             self,
             "fribidi",
-            archive_url="https://github.com/fribidi/fribidi/releases/download/v1.0.12/fribidi-1.0.12.tar.xz",
-            hash="0cd233f97fc8c67bb3ac27ce8440def5d3ffacf516765b91c2cc654498293495",
+            version="1.0.16",
+            archive_url="https://github.com/fribidi/fribidi/releases/download/v{version}/fribidi-{version}.tar.xz",
+            hash="1b1cde5b235d40479e91be2f0e88a309e3214c8ab470ec8a2744d82a5a9ea05c",
             dependencies=["ninja", "meson"],
         )
 

@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -28,8 +26,7 @@ def convert_to_msys(path):
     path = path
     if path[1] != ":":
         raise NotADirectoryError("Path doesn't contain a drive letter like C:")
-    path = f"/{path[0]}" + path[2:].replace("\\", "/")
-    return path
+    return f"/{path[0]}" + path[2:].replace("\\", "/")
 
 
 def _rmtree_error_handler(func, path, exc_info):
@@ -43,12 +40,14 @@ def _rmtree_error_handler(func, path, exc_info):
 
 
 def rmtree_full(dest_dir, retry=False):
+    if not os.path.isdir(dest_dir):
+        return
     if retry:
         for delay in [0.1, 0.2, 0.4, 0.8]:
             try:
                 shutil.rmtree(dest_dir, onerror=_rmtree_error_handler)
                 break
-            except WindowsError:
+            except OSError:
                 # wait a little, don't ask me why ;(
                 time.sleep(delay)
     else:
@@ -56,13 +55,13 @@ def rmtree_full(dest_dir, retry=False):
 
 
 def read_file(file_name):
-    with open(file_name) as fi:
+    with open(file_name, encoding="utf-8") as fi:
         rt = [line.rstrip("\n") for line in fi]
     return rt
 
 
 def write_file(file_name, content):
-    with open(file_name, "wt") as fo:
+    with open(file_name, "w", encoding="utf-8") as fo:
         for i in content:
             fo.write(f"{i}\n")
 
@@ -121,24 +120,18 @@ def python_find_libs_dir(org_dir):
         return cur
 
     # look for the virtualenv marker
-    chk = os.path.join(org_dir, "lib")
-    if not os.path.isdir(chk):
+    pyvenv_file = os.path.join(org_dir, "pyvenv.cfg")
+    if not os.path.isfile(pyvenv_file):
         # one level up
-        chk = os.path.join(org_dir, "..", "lib")
+        pyvenv_file = os.path.join(org_dir, "..", "pyvenv.cfg")
 
-    if not chk:
-        # oops
-        return None
-
-    orig_file = os.path.join(chk, "orig-prefix.txt")
-    if os.path.isfile(orig_file):
-        # Read and see whats happening
-        with open(orig_file) as fi:
-            org_dir = fi.read()
-
+    if os.path.isfile(pyvenv_file):
+        # Read file to get home path
+        for line in read_file(pyvenv_file):
+            key, value = line.split("=")
+            if "home" == key.strip():
+                org_dir = value.strip()
+                break
     # Let's see if now is ok ..
     cur = os.path.join(org_dir, "libs")
-    if os.path.isdir(cur):
-        return cur
-
-    return None
+    return cur if os.path.isdir(cur) else None

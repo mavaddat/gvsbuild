@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,26 +14,26 @@
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from gvsbuild.utils.base_builders import Meson
-from gvsbuild.utils.base_expanders import GitRepo
-from gvsbuild.utils.base_project import Project, project_add
+from gvsbuild.utils.base_expanders import Tarball
+from gvsbuild.utils.base_project import project_add
 
 
 @project_add
-class Opus(GitRepo, Meson):
+class Opus(Tarball, Meson):
     def __init__(self):
-        Project.__init__(
+        Meson.__init__(
             self,
             "opus",
-            repo_url="https://github.com/xiph/opus",
-            tag="ccaaffa9a3ee427e9401c4dcf6462e378d9a4694",
-            fetch_submodules=False,
+            version="1.5.2",
+            repository="https://github.com/xiph/opus",
+            archive_url="https://downloads.xiph.org/releases/opus/opus-{version}.tar.gz",
+            hash="65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1",
             dependencies=[
                 "ninja",
                 "meson",
-                "pkg-config",
+                "pkgconf",
             ],
         )
-
         self.add_param("-Dtests=disabled")
         self.add_param("-Ddocs=disabled")
 

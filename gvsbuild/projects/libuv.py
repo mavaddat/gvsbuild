@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,8 +24,10 @@ class Libuv(Tarball, CmakeProject):
         Project.__init__(
             self,
             "libuv",
-            archive_url="https://github.com/libuv/libuv/archive/v1.44.1.tar.gz",
-            hash="e91614e6dc2dd0bfdd140ceace49438882206b7a6fb00b8750914e67a9ed6d6b",
+            version="1.50.0",
+            archive_filename="libuv-v{version}.tar.gz",
+            archive_url="https://github.com/libuv/libuv/archive/v{version}.tar.gz",
+            hash="b1ec56444ee3f1e10c8bd3eed16ba47016ed0b94fe42137435aaf2e0bd574579",
             dependencies=[
                 "cmake",
                 "ninja",

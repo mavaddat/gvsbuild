@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,15 +24,19 @@ class Pango(Tarball, Meson):
         Project.__init__(
             self,
             "pango",
-            archive_url="https://download.gnome.org/sources/pango/1.50/pango-1.50.7.tar.xz",
-            hash="0477f369a3d4c695df7299a6989dc004756a7f4de27eecac405c6790b7e3ad33",
+            version="1.56.1",
+            repository="https://gitlab.gnome.org/GNOME/pango",
+            archive_url="https://download.gnome.org/sources/pango/{major}.{minor}/pango-{version}.tar.xz",
+            hash="426be66460c98b8378573e7f6b0b2ab450f6bb6d2ec7cecc33ae81178f246480",
             dependencies=[
                 "ninja",
                 "meson",
+                "freetype",
                 "cairo",
                 "harfbuzz",
                 "fribidi",
             ],
+            patches=[],
         )
         if self.opts.enable_gi:
             self.add_dependency("gobject-introspection")
@@ -43,6 +45,7 @@ class Pango(Tarball, Meson):
             enable_gi = "disabled"
 
         self.add_param(f"-Dintrospection={enable_gi}")
+        self.add_param("-Dfreetype=enabled")
 
     def build(self):
         Meson.build(self)

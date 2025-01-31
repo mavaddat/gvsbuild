@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,22 +13,31 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from gvsbuild.utils.base_builders import CmakeProject
 from gvsbuild.utils.base_expanders import Tarball
 from gvsbuild.utils.base_project import Project, project_add
 
 
 @project_add
-class LevelDB(Tarball, Project):
+class LevelDB(Tarball, CmakeProject):
     def __init__(self):
         Project.__init__(
             self,
             "leveldb",
-            archive_url="https://github.com/google/leveldb/archive/v1.20.tar.gz",
-            archive_file_name="leveldb-1.20.tar.gz",
-            hash="f5abe8b5b209c2f36560b75f32ce61412f39a2922f7045ae764a2c23335b6664",
+            version="1.23",
+            archive_url="https://github.com/google/leveldb/archive/tags/{version}.tar.gz",
+            archive_filename="leveldb-{version}.tar.gz",
+            hash="fa183b494f3ffe418a6804a57dfc0670080fbb0bcd1949cc4527d9b0077887a8",
+            dependencies=[
+                "cmake",
+            ],
         )
 
     def build(self):
-        self.exec_msbuild_gen(r"build\win32", "leveldb.sln")
+        CmakeProject.build(
+            self,
+            use_ninja=True,
+            cmake_params="-DLEVELDB_BUILD_TESTS=OFF -DLEVELDB_BUILD_BENCHMARKS=OFF",
+        )
 
         self.install(r".\LICENSE share\doc\leveldb")

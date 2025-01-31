@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+import contextlib
+
 from gvsbuild.utils.base_expanders import Tarball
 from gvsbuild.utils.base_project import Project, project_add
 
@@ -25,8 +25,9 @@ class OpenSSL(Tarball, Project):
         Project.__init__(
             self,
             "openssl",
-            archive_url="https://www.openssl.org/source/openssl-1.1.1o.tar.gz",
-            hash="9384a2b0570dd80358841464677115df785edb941c71211f75076d72fe6b438f",
+            version="3.4.0",
+            archive_url="https://github.com/openssl/openssl/releases/download/openssl-{version}/openssl-{version}.tar.gz",
+            hash="e15dda82fe2fe8139dc2ac21a36d4ca01d5313c75f99f46c4e8a27709b7294bf",
             dependencies=[
                 "perl",
                 "nasm",
@@ -35,39 +36,55 @@ class OpenSSL(Tarball, Project):
         )
 
     def build(self):
-        common_options = r"no-ssl2 no-ssl3 no-comp --openssldir=%(gtk_dir)s/etc/ssl --prefix=%(gtk_dir)s"
-
+        common_options = r"enable-fips no-comp no-docs no-ssl3 --openssldir=%(gtk_dir)s/etc/ssl --prefix=%(gtk_dir)s"
         debug_option = "debug-" if self.builder.opts.configuration == "debug" else ""
-        # Note that we want to give priority to the system perl version.
-        # Using the msys2 one might endup giving us a broken build
-        #        add_path = ';'.join([os.path.join(self.builder.perl_dir, 'bin'),
-        #                             os.path.join(self.builder.opts.msys_dir, 'usr', 'bin')])
-        add_path = None
+        target_option = "VC-WIN32 " if self.builder.x86 else "VC-WIN64A "
 
-        if self.builder.x86:
-            self.exec_vs(
-                r"%(perl_dir)s\bin\perl.exe Configure "
-                + debug_option
-                + "VC-WIN32 "
-                + common_options
-            )
-        else:
-            self.exec_vs(
-                r"%(perl_dir)s\bin\perl.exe Configure "
-                + debug_option
-                + "VC-WIN64A "
-                + common_options
-            )
+        self.exec_vs(
+            r"%(perl_dir)s\bin\perl.exe Configure "
+            + debug_option
+            + target_option
+            + common_options
+        )
 
-        try:
-            self.exec_vs(r"nmake /nologo clean", add_path=add_path)
-        except:  # noqa E722
-            pass
-
-        self.exec_vs(r"nmake /nologo", add_path=add_path)
+        with contextlib.suppress(Exception):
+            self.exec_vs(r"nmake /nologo clean")
+        self.exec_vs(r"nmake /nologo")
         self.exec_vs(r"%(perl_dir)s\bin\perl.exe mk-ca-bundle.pl -n cert.pem")
-        self.exec_vs(r"nmake /nologo install", add_path=add_path)
+        self.exec_vs(r"nmake /nologo install")
 
         self.install(r".\cert.pem bin")
         self.install(r".\LICENSE share\doc\openssl")
         self.install_pc_files()
+
+
+@project_add
+class OpenSSLFips(Tarball, Project):
+    def __init__(self):
+        Project.__init__(
+            self,
+            "openssl-fips",
+            version="3.0.9",
+            archive_url="https://www.openssl.org/source/old/{major}.{minor}/openssl-{version}.tar.gz",
+            hash="eb1ab04781474360f77c318ab89d8c5a03abc38e63d65a603cabbf1b00a1dc90",
+            dependencies=[
+                "openssl",
+            ],
+        )
+
+    def build(self):
+        common_options = "enable-fips no-ssl3 no-comp --openssldir=%(gtk_dir)s/etc/ssl --prefix=%(gtk_dir)s"
+        debug_option = "debug-" if self.builder.opts.configuration == "debug" else ""
+        target_option = "VC-WIN32 " if self.builder.x86 else "VC-WIN64A "
+
+        self.exec_vs(
+            r"%(perl_dir)s\bin\perl.exe Configure "
+            + debug_option
+            + target_option
+            + common_options
+        )
+
+        with contextlib.suppress(Exception):
+            self.exec_vs(r"nmake /nologo clean")
+        self.exec_vs(r"nmake /nologo")
+        self.exec_vs(r"nmake /nologo install_fips")

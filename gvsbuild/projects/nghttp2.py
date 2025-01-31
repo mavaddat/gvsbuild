@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,8 +24,9 @@ class Nghttp2(Tarball, CmakeProject):
         Project.__init__(
             self,
             "nghttp2",
-            archive_url="https://github.com/nghttp2/nghttp2/releases/download/v1.45.1/nghttp2-1.45.1.tar.xz",
-            hash="abdc4addccadbc7d89abe27c4d6427d78e57d139f69c1f45749227393c68bf79",
+            version="1.59.0",
+            archive_url="https://github.com/nghttp2/nghttp2/releases/download/v{version}/nghttp2-{version}.tar.xz",
+            hash="fdc9bd71f5cf8d3fdfb63066b89364c10eb2fdeab55f3c6755cd7917b2ec4ffb",
             dependencies=[
                 "cmake",
                 "zlib",

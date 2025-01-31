@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -25,8 +23,10 @@ class HicolorIconTheme(Tarball, Project):
         Project.__init__(
             self,
             "hicolor-icon-theme",
-            archive_url="http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-0.17.tar.xz",
-            hash="317484352271d18cbbcfac3868eab798d67fff1b8402e740baa6ff41d588a9d8",
+            version="0.18",
+            repository="https://gitlab.freedesktop.org/xdg/default-icon-theme",
+            archive_url="http://icon-theme.freedesktop.org/releases/hicolor-icon-theme-{version}.tar.xz",
+            hash="db0e50a80aa3bf64bb45cbca5cf9f75efd9348cf2ac690b907435238c3cf81d7",
         )
 
     def build(self):

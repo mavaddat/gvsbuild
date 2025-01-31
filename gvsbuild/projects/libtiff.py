@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,14 +24,14 @@ class Libtiff4(Tarball, CmakeProject):
         Project.__init__(
             self,
             "libtiff-4",
-            archive_url="http://download.osgeo.org/libtiff/tiff-4.3.0.tar.gz",
-            hash="0e46e5acb087ce7d1ac53cf4f56a09b221537fc86dfc5daaad1c2e89e1b37ac8",
-            dependencies=[
-                "cmake",
-                "ninja",
-                "libjpeg-turbo",
+            version="4.7.0",
+            repository="https://gitlab.com/libtiff/libtiff",
+            archive_url="http://download.osgeo.org/libtiff/tiff-{version}.tar.gz",
+            hash="67160e3457365ab96c5b3286a0903aa6e78bdc44c4bc737d2e486bcecb6ba976",
+            dependencies=["cmake", "ninja", "libjpeg-turbo"],
+            patches=[
+                "0001-cmake-remove-.d-postfix.patch",
             ],
-            patches=["0001-Remove-postfix.patch"],
         )
 
     def build(self):

@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,9 +24,12 @@ class JsonGLib(Tarball, Meson):
         Project.__init__(
             self,
             "json-glib",
-            archive_url="https://download.gnome.org/sources/json-glib/1.6/json-glib-1.6.6.tar.xz",
-            hash="96ec98be7a91f6dde33636720e3da2ff6ecbb90e76ccaa49497f31a6855a490e",
-            dependencies=["meson", "ninja", "pkg-config", "python", "glib"],
+            version="1.10.6",
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/json-glib",
+            archive_url="https://download.gnome.org/sources/json-glib/{major}.{minor}/json-glib-{version}.tar.xz",
+            hash="77f4bcbf9339528f166b8073458693f0a20b77b7059dbc2db61746a1928b0293",
+            dependencies=["meson", "ninja", "pkgconf", "glib"],
         )
         if self.opts.enable_gi:
             self.add_dependency("gobject-introspection")
@@ -36,10 +37,10 @@ class JsonGLib(Tarball, Meson):
         else:
             enable_gi = "disabled"
 
-        self.add_param("-Dgtk_doc=disabled")
+        self.add_param("-Ddocumentation=disabled")
         self.add_param(f"-Dintrospection={enable_gi}")
 
     def build(self):
         Meson.build(self, make_tests=True)
 
-        self.install(r".\COPYING share\doc\json-glib")
+        self.install(r".\LICENSES\* share\doc\json-glib")

@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,8 +24,9 @@ class Jsonc(Tarball, CmakeProject):
         Project.__init__(
             self,
             "json-c",
-            archive_url="https://github.com/json-c/json-c/archive/json-c-0.16-20220414.tar.gz",
-            hash="3ecaeedffd99a60b1262819f9e60d7d983844073abc74e495cb822b251904185",
+            version="0.18.20240915",
+            archive_url="https://github.com/json-c/json-c/archive/json-c-{major}.{minor}-{micro}.tar.gz",
+            hash="3112c1f25d39eca661fe3fc663431e130cc6e2f900c081738317fba49d29e298",
         )
 
     def build(self):

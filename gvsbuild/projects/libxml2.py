@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,9 +24,13 @@ class Libxml2(Tarball, Meson):
         Project.__init__(
             self,
             "libxml2",
-            archive_url="https://download.gnome.org/sources/libxml2/2.9/libxml2-2.9.14.tar.xz",
-            hash="60d74a257d1ccec0475e749cba2f21559e48139efba6ff28224357c7c798dfee",
+            version="2.12.9",
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/libxml2",
+            archive_url="https://download.gnome.org/sources/libxml2/{major}.{minor}/libxml2-{version}.tar.xz",
+            hash="59912db536ab56a3996489ea0299768c7bcffe57169f0235e7f962a91f483590",
             dependencies=["win-iconv", "meson", "ninja"],
+            patches=[],
         )
 
     def build(self):

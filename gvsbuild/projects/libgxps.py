@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,19 +24,22 @@ class Libgxps(Tarball, Meson):
         Project.__init__(
             self,
             "libgxps",
-            archive_url="https://download.gnome.org/sources/libgxps/0.3/libgxps-0.3.2.tar.xz",
+            version="0.3.2",
+            archive_url="https://download.gnome.org/sources/libgxps/{major}.{minor}/libgxps-{version}.tar.xz",
             hash="6d27867256a35ccf9b69253eb2a88a32baca3b97d5f4ef7f82e3667fa435251c",
             dependencies=[
                 "meson",
                 "ninja",
-                "pkg-config",
+                "pkgconf",
                 "glib",
                 "libarchive",
                 "cairo",
                 "libpng",
                 "libjpeg-turbo",
                 "libtiff-4",
-                "gtk3",
+            ],
+            patches=[
+                "0001-converter-pdf-add-option-for-stdout-output.patch",
             ],
         )
         if self.opts.enable_gi:

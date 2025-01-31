@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -29,8 +27,9 @@ class Libarchive(Tarball, CmakeProject):
         Project.__init__(
             self,
             "libarchive",
-            archive_url="https://libarchive.org/downloads/libarchive-3.6.1.tar.xz",
-            hash="5a411aceb978f43e626f0c2d1812ddd8807b645ed892453acabd532376c148e6",
+            version="3.7.7",
+            archive_url="https://libarchive.org/downloads/libarchive-{version}.tar.xz",
+            hash="879acd83c3399c7caaee73fe5f7418e06087ab2aaf40af3e99b9e29beb29faee",
             dependencies=[
                 "cmake",
                 "ninja",

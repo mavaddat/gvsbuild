@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,6 +17,8 @@
 
 import os
 import shutil
+import sys
+from pathlib import Path
 
 from .base_project import Project
 from .simple_ui import log
@@ -62,17 +62,21 @@ class Meson(Project):
         self._ensure_params()
         add_opts = " ".join(self.params) + " " if self.params else ""
         # debug info
-        add_opts += "--buildtype " + (
-            "debug" if self.builder.opts.configuration == "debug" else "debugoptimized"
-        )
+        build_type = self.builder.opts.configuration
+        if self.builder.opts.release_configuration_is_actually_debug_optimized:
+            build_type = "debugoptimized"
+        add_opts += f"--buildtype {build_type}"
         if meson_params:
             add_opts += f" {meson_params}"
+        if self.extra_opts:
+            extra_opts = " ".join(self.extra_opts)
+            add_opts += f" {extra_opts}"
         # python meson.py src_dir ninja_build_dir --prefix gtk_bin options
         meson = Project.get_tool_executable("meson")
-        python = Project.get_tool_executable("python")
-        if " " in python:
+        python = Path(sys.executable)
+        if " " in str(python):
             python = f'"{python}"'
-        cmd = f"{python} {meson} {self._get_working_dir()} {ninja_build} --prefix {self.builder.gtk_dir} {add_opts}"
+        cmd = f"{python} {meson} setup {self._get_working_dir()} {ninja_build} --prefix {self.builder.gtk_dir} {add_opts}"
 
         # build the ninja file to do everything (build the library, create the .pc file, install it, ...)
         self.exec_vs(cmd, add_path=add_path)
@@ -92,20 +96,20 @@ class CmakeProject(Project):
         out_of_source=None,
         source_part=None,
     ):
-        cmake_config = (
-            "Debug" if self.builder.opts.configuration == "debug" else "RelWithDebInfo"
-        )
         cmake_gen = "Ninja" if use_ninja else "NMake Makefiles"
 
-        # Create the command for cmake
-        cmd = (
-            'cmake -G "'
-            + cmake_gen
-            + '" -DCMAKE_INSTALL_PREFIX="%(pkg_dir)s" -DGTK_DIR="%(gtk_dir)s" -DCMAKE_BUILD_TYPE='
-            + cmake_config
+        cmake_config = (
+            "Debug" if self.builder.opts.configuration == "debug" else "Release"
         )
+        if self.builder.opts.release_configuration_is_actually_debug_optimized:
+            cmake_config = "RelWithDebInfo"
+        # Create the command for cmake
+        cmd = f'cmake -G "{cmake_gen}" -DCMAKE_INSTALL_PREFIX="%(pkg_dir)s" -DGTK_DIR="%(gtk_dir)s" -DCMAKE_BUILD_TYPE={cmake_config}'
         if cmake_params:
             cmd += f" {cmake_params}"
+        if self.extra_opts:
+            extra_opts = " ".join(self.extra_opts)
+            cmd += f" {extra_opts}"
         if use_ninja and out_of_source is None:
             # For ninja the default is build out of source
             out_of_source = True
@@ -169,6 +173,9 @@ class Rust(Project):
         else:
             folder = "debug"
 
+        if self.extra_opts:
+            params.extend(self.extra_opts)
+
         cargo_build = os.path.join(self.build_dir, "cargo-build")
 
         params.append(f"--target-dir={cargo_build}")
@@ -182,6 +189,7 @@ class Rust(Project):
             params=" ".join(["build"] + params),
             working_dir=self.build_dir,
             rustc_opts=rustc_opts,
+            rust_version=self.version,
         )
 
         # test
@@ -190,6 +198,7 @@ class Rust(Project):
                 params=" ".join(["test"] + params),
                 working_dir=self.build_dir,
                 rustc_opts=rustc_opts,
+                rust_version=self.version,
             )
 
         shutil.copytree(
@@ -213,7 +222,7 @@ class MakeGir:
                 log.message(f"Unable to find detectenv-msvc.mak for {prj_name}")
                 return
 
-        cmd = f'nmake -f {prj_name}-introspection-msvc.mak CFG={self.builder.opts.configuration} PREFIX={self.builder.gtk_dir} PYTHON={Project.get_tool_executable("python")} install-introspection'
+        cmd = f"nmake -f {prj_name}-introspection-msvc.mak CFG={self.builder.opts.configuration} PREFIX={self.builder.gtk_dir} PYTHON={Project.get_tool_executable('python')} install-introspection"
 
         self.push_location(b_dir)
         self.exec_vs(cmd)

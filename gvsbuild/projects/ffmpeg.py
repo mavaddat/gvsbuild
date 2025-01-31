@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -28,61 +26,65 @@ class Ffmpeg(Tarball, Project):
         Project.__init__(
             self,
             "ffmpeg",
-            archive_url="https://ffmpeg.org/releases/ffmpeg-5.0.1.tar.xz",
-            hash="ef2efae259ce80a240de48ec85ecb062cecca26e4352ffb3fda562c21a93007b",
-            dependencies=["nasm", "msys2", "pkg-config", "nv-codec-headers"],
-            patches=["0001-Added-support-for-MB_INFO.patch"],
+            version="7.1",
+            archive_url="https://ffmpeg.org/releases/ffmpeg-{version}.tar.xz",
+            hash="40973d44970dbc83ef302b0609f2e74982be2d85916dd2ee7472d30678a7abe6",
+            dependencies=[
+                "dav1d",
+                "nasm",
+                "msys2",
+                "pkgconf",
+                "nv-codec-headers",
+            ],
+            patches=[],
         )
         if self.opts.ffmpeg_enable_gpl:
             self.add_dependency("x264")
 
     def build(self):
+        configuration = (
+            "debug-optimized"
+            if self.opts.release_configuration_is_actually_debug_optimized
+            else self.opts.configuration
+        )
         msys_path = Project.get_tool_path("msys2")
         self.exec_vs(
-            r"%s\bash build\build.sh %s %s %s %s"
-            % (
+            r"{}\bash build\build.sh {} {} {} {}".format(
                 msys_path,
                 convert_to_msys(self.pkg_dir),
                 convert_to_msys(self.builder.gtk_dir),
-                self.builder.opts.configuration,
+                configuration,
                 "enable_gpl" if self.opts.ffmpeg_enable_gpl else "disable_gpl",
             ),
             add_path=msys_path,
         )
+
+        if configuration in ["debug-optimized", "debug"]:
+            self.install(r".\libavcodec\avcodec-60.pdb bin")
+            self.install(r".\libavutil\avutil-58.pdb bin")
+            self.install(r".\libswscale\libswscale-7.pdb bin")
 
         self.install(r".\COPYING.LGPLv2.1 " r".\COPYING.LGPLv3 " r"share\doc\ffmpeg")
         if self.opts.ffmpeg_enable_gpl:
             self.install(r".\COPYING.GPLv2 " r"share\doc\ffmpeg")
 
     def post_install(self):
-        self.builder.exec_msys(
-            ["mv", "avcodec.lib", "../lib/"],
-            working_dir=os.path.join(self.builder.gtk_dir, "bin"),
-        )
-        self.builder.exec_msys(
-            ["mv", "avutil.lib", "../lib/"],
-            working_dir=os.path.join(self.builder.gtk_dir, "bin"),
-        )
-        if self.opts.ffmpeg_enable_gpl:
+        for lib in ["avcodec.lib", "avutil.lib", "swscale.lib"]:
             self.builder.exec_msys(
-                ["mv", "postproc.lib", "../lib/"],
+                ["mv", lib, "../lib/"],
                 working_dir=os.path.join(self.builder.gtk_dir, "bin"),
             )
-        self.builder.exec_msys(
-            ["mv", "swscale.lib", "../lib/"],
-            working_dir=os.path.join(self.builder.gtk_dir, "bin"),
-        )
 
 
 @project_add
-class Project_nv_codec_headers(Tarball, Project):
+class NvCodecHeaders(Tarball, Project):
     def __init__(self):
         Project.__init__(
             self,
             "nv-codec-headers",
-            archive_url="https://github.com/FFmpeg/nv-codec-headers/releases/download/n11.1.5.1/nv-codec-headers-11.1.5.1.tar.gz",
-            hash="a28cdde3ac0e9e02c2dde7a1b4de5333b4ac6148a8332ca712da243a3361a0d9",
-            version="11.1.5.1",
+            version="12.2.72.0",
+            archive_url="https://github.com/FFmpeg/nv-codec-headers/releases/download/n{version}/nv-codec-headers-{version}.tar.gz",
+            hash="c295a2ba8a06434d4bdc5c2208f8a825285210d71d91d572329b2c51fd0d4d03",
         )
 
     def build(self):

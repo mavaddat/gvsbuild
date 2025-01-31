@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -27,9 +25,11 @@ class Gettext(Tarball, Project):
         Project.__init__(
             self,
             "gettext",
-            archive_url="http://ftp.gnu.org/pub/gnu/gettext/gettext-0.21.tar.xz",
+            version="0.21",
+            repository="autotools-mirror/gettext",
+            archive_url="http://ftp.gnu.org/pub/gnu/gettext/gettext-{version}.tar.xz",
             hash="d20fcbb537e02dcf1383197ba05bd0734ef7bf5db06bdb241eb69b7d16b73192",
-            dependencies=["python", "win-iconv"],
+            dependencies=["win-iconv"],
             patches=[
                 "gettext-runtime-c99.patch",
                 "gettext-tools-c99.patch",
@@ -47,12 +47,7 @@ class Gettext(Tarball, Project):
         self.pop_location()
 
         self.push_location(
-            r".\nmake\vs%s\%s\%s"
-            % (
-                self.builder.opts.vs_ver,
-                self.builder.opts.configuration,
-                self.builder.opts.platform,
-            )
+            rf".\nmake\vs{self.builder.opts.vs_ver}\{self.builder.opts.configuration}\{self.builder.opts.platform}"
         )
         self.install(r".\asprintf.dll bin")
         self.install(r".\asprintf.pdb bin")

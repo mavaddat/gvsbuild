@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -21,7 +19,9 @@ import ctypes
 import datetime
 import os
 import sys
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
+
+from rich import print
 
 # Original windows console title
 _script_org_title = None
@@ -114,14 +114,12 @@ class Log:
 
             if c_size > max_size_kb:
                 old_file = os.path.join(file_path, "gvsbuild-log.old.txt")
-                try:
+                with suppress(FileNotFoundError):
                     os.remove(old_file)
-                except FileNotFoundError:
-                    pass
                 os.rename(self.log_file, old_file)
 
         self.operations = []
-        self.fo = open(self.log_file, "at", encoding="utf-8")
+        self.fo = open(self.log_file, "a", encoding="utf-8")
         self._output("Script started")
         if created:
             self.log(f"Log directory {file_path} created")
@@ -133,14 +131,9 @@ class Log:
             self._output_val("Vs path", opts.vs_install_path)
             self._output_val("Sdk ver", opts.win_sdk_ver)
 
-    def _get_delta(self, start, end=None):
-        if not end:
-            end = datetime.datetime.now()
+    def _get_delta(self, start):
         dt = datetime.datetime.now() - start
-        return "%u.%03u" % (
-            dt.seconds,
-            dt.microseconds / 1000,
-        )
+        return f"{dt.seconds}.{dt.microseconds // 1000:03}"
 
     def _indend_check(self):
         if self.operations:
@@ -207,13 +200,7 @@ class Log:
                 now_val = datetime.datetime.now()
                 self.fo.write(f"{now_val.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n")
             else:
-                self.fo.write(
-                    "%19s %s\n"
-                    % (
-                        "",
-                        msg,
-                    )
-                )
+                self.fo.write(f"{msg:<20}")
             return False
         else:
             print(msg)
@@ -221,13 +208,7 @@ class Log:
             return True
 
     def _output_val(self, msg, val):
-        self._output(
-            "%16s: %s"
-            % (
-                msg,
-                val,
-            )
-        )
+        self._output(f"{msg:<16}: {val}")
 
     def message_indent(self, msg):
         if self._output(msg, add_date=False):

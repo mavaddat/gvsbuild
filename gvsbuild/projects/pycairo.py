@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,31 +12,32 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
-
+import sys
 from pathlib import Path
 
+from gvsbuild.utils.base_builders import Meson
 from gvsbuild.utils.base_expanders import Tarball
-from gvsbuild.utils.base_project import Project, project_add
+from gvsbuild.utils.base_project import project_add
 
 
 @project_add
-class Pycairo(Tarball, Project):
+class Pycairo(Tarball, Meson):
     def __init__(self):
-        Project.__init__(
+        Meson.__init__(
             self,
             "pycairo",
-            archive_url="https://github.com/pygobject/pycairo/releases/download/v1.21.0/pycairo-1.21.0.tar.gz",
-            hash="251907f18a552df938aa3386657ff4b5a4937dde70e11aa042bc297957f4b74b",
-            dependencies=["cairo", "python"],
-            patches=[
-                "pycairo_py3_8_load_dll.patch",
-            ],
+            version="1.27.0",
+            archive_url="https://github.com/pygobject/pycairo/releases/download/v{version}/pycairo-{version}.tar.gz",
+            hash="5cb21e7a00a2afcafea7f14390235be33497a2cce53a98a19389492a60628430",
+            dependencies=["cairo"],
         )
 
     def build(self):
+        py_dir = Path(sys.executable).parent
+        Meson.build(self, meson_params=f'-Dpython="{py_dir}\\python.exe"')
         cairo_inc = Path(self.builder.gtk_dir) / "include" / "cairo"
         self.builder.mod_env("INCLUDE", str(cairo_inc))
-        self.exec_vs(r"%(python_dir)s\python.exe -m build")
+        self.exec_vs(r"%(python_dir)s\python.exe -m build -w")
         dist_dir = Path(self.build_dir) / "dist"
         for path in dist_dir.rglob("*.whl"):
             self.exec_vs(r"%(python_dir)s\python.exe -m pip install " + str(path))

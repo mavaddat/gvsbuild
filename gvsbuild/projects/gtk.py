@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,7 +39,7 @@ class Project_gtk_base(Tarball, Project, MakeGir):
             self.builder.exec_cmd(cmd, working_dir=self._get_working_dir())
         self.pop_location()
 
-        self.install(r".\COPYING share\doc\%s" % self.name)
+        self.install(rf".\COPYING share\doc\{self.name}")
 
 
 @project_add
@@ -50,7 +48,11 @@ class Gtk2(Project_gtk_base):
         Project.__init__(
             self,
             "gtk2",
-            archive_url="https://download.gnome.org/sources/gtk+/2.24/gtk+-2.24.33.tar.xz",
+            version="2.24.33",
+            lastversion_major=2,
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/gtk",
+            archive_url="https://download.gnome.org/sources/gtk+/{major}.{minor}/gtk+-{version}.tar.xz",
             hash="ac2ac757f5942d318a311a54b0c80b5ef295f299c2a73c632f6bfb1ff49cc6da",
             dependencies=["atk", "gdk-pixbuf", "pango"],
             patches=[
@@ -88,8 +90,12 @@ class Gtk3(Tarball, Meson):
             self,
             "gtk3",
             prj_dir="gtk3",
-            archive_url="https://download.gnome.org/sources/gtk%2B/3.24/gtk%2B-3.24.34.tar.xz",
-            hash="dbc69f90ddc821b8d1441f00374dc1da4323a2eafa9078e61edbe5eeefa852ec",
+            version="3.24.48",
+            lastversion_major=3,
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/gtk",
+            archive_url="https://download.gnome.org/sources/gtk/{major}.{minor}/gtk-{version}.tar.xz",
+            hash="d10ce9ea9df44c1016d8d1721f39e55d3d607fcfb85334aec0d236cdc9a70556",
             dependencies=["atk", "gdk-pixbuf", "pango", "libepoxy"],
             patches=[
                 "gtk_update_icon_cache.patch",
@@ -116,9 +122,22 @@ class Gtk4(Tarball, Meson):
             self,
             "gtk4",
             prj_dir="gtk4",
-            archive_url="https://download.gnome.org/sources/gtk/4.6/gtk-4.6.5.tar.xz",
-            hash="fa42c371f49c90916711e15591d87d4bee4438c27bf0692715581807628be9c2",
-            dependencies=["gdk-pixbuf", "pango", "libepoxy", "graphene"],
+            version="4.16.12",
+            lastversion_major=4,
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/gtk",
+            archive_url="https://download.gnome.org/sources/gtk/{major}.{minor}/gtk-{version}.tar.xz",
+            hash="ef31bdbd6f082c4401634a20c850b0050c9bf252ef1e079764ee95a2a0c4c95a",
+            dependencies=[
+                "gdk-pixbuf",
+                "pango",
+                "libepoxy",
+                "graphene",
+                "cairo",
+                "harfbuzz",
+                "glib",
+                "fribidi",
+            ],
             patches=[],
         )
         if self.opts.enable_gi:
@@ -128,11 +147,13 @@ class Gtk4(Tarball, Meson):
             enable_gi = "disabled"
 
         self.add_param(f"-Dintrospection={enable_gi}")
+        self.add_param("-Dbuild-tests=false")
+        self.add_param("-Dbuild-testsuite=false")
+        self.add_param("-Dbuild-demos=false")
+        self.add_param("-Dbuild-examples=false")
+        self.add_param("-Dmedia-gstreamer=disabled")
+        self.add_param("-Dvulkan=disabled")
 
     def build(self):
-        Meson.build(
-            self,
-            meson_params="-Dbuild-tests=false -Ddemos=false -Dbuild-examples=false -Dmedia-gstreamer=disabled",
-        )
-
+        Meson.build(self)
         self.install(r".\COPYING share\doc\gtk4")

@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -38,8 +36,10 @@ class Zlib(Tarball, Project):
         Project.__init__(
             self,
             "zlib",
-            archive_url="http://www.zlib.net/zlib-1.2.12.tar.xz",
-            hash="7db46b8d7726232a621befaab4a1c870f00a90805511c0e0090441dac57def18",
+            version="1.3.1",
+            archive_url="https://github.com/madler/zlib/releases/download/v{version}/zlib-{version}.tar.xz",
+            hash="38ef96b8dfe510d42707d9c781877914792541133e1870841463bfa73f883e32",
+            patches=[],
         )
 
     def build(self):

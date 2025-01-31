@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -25,14 +23,15 @@ class PkgConf(Tarball, Meson):
     def __init__(self):
         Project.__init__(
             self,
-            "pkg-config",
+            "pkgconf",
             prj_dir="pkgconf",
-            archive_url="https://distfiles.dereferenced.org/pkgconf/pkgconf-1.8.0.tar.gz",
-            hash="d7b6fdb522d81c11f5a0e0a0629a9f5480809ec90e595058674c1517822dfb8c",
+            version="2.3.0",
+            archive_url="https://distfiles.ariadne.space/pkgconf/pkgconf-{version}.tar.gz",
+            hash="a2df680578e85f609f2fa67bd3d0fc0dc71b4bf084fc49119de84cd6ed28e723",
             dependencies=["ninja", "meson"],
-            patches=["0001-vs2013.patch"],
+            patches=["0001-libpkgconf-add-defines-to-unbreak-build-with-VS2013.patch"],
         )
-        self.add_param("-Dtests=false")
+        self.add_param("-Dtests=disabled")
 
     def build(self):
         Meson.build(self)

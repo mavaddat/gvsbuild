@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,9 +24,10 @@ class OpenH264(Tarball, Meson):
         Project.__init__(
             self,
             "openh264",
-            archive_url="https://github.com/cisco/openh264/archive/refs/tags/v2.2.0.tar.gz",
-            archive_file_name="openh264-2.2.0.tar.gz",
-            hash="e4e5c8ba48e64ba6ce61e8b6e2b76b2d870c74c270147649082feabb40f25905",
+            version="2.5.0",
+            archive_url="https://github.com/cisco/openh264/archive/refs/tags/v{version}.tar.gz",
+            archive_filename="openh264-{version}.tar.gz",
+            hash="94c8ca364db990047ec4ec3481b04ce0d791e62561ef5601443011bdc00825e3",
             dependencies=[
                 "ninja",
                 "meson",

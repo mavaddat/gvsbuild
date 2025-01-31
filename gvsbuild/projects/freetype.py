@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,10 +24,11 @@ class Freetype(Tarball, Meson):
         Project.__init__(
             self,
             "freetype",
-            archive_url="https://gitlab.freedesktop.org/freetype/freetype/-/archive/VER-2-12-1/freetype-VER-2-12-1.tar.gz",
-            hash="0e72cae32751598d126cfd4bceda909f646b7231ab8c52e28abb686c20a2bea1",
-            version="2.12.1",
-            dependencies=["pkg-config", "ninja", "libpng"],
+            version="2.13.3",
+            repository="https://gitlab.freedesktop.org/freetype/freetype",
+            archive_url="https://gitlab.freedesktop.org/freetype/freetype/-/archive/VER-{major}-{minor}-{micro}/freetype-VER-{major}-{minor}-{micro}.tar.gz",
+            hash="bc5c898e4756d373e0d991bab053036c5eb2aa7c0d5c67e8662ddc6da40c4103",
+            dependencies=["pkgconf", "ninja", "libpng"],
             patches=["0001-meson-in-shared-libraries-we-need-to-export-the-meth.patch"],
         )
 

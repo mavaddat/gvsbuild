@@ -1,7 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
-#  Copyright (C) 2022 - Nefo Fortressia
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -27,14 +24,20 @@ class Libadwaita(Tarball, Meson):
         Project.__init__(
             self,
             "libadwaita",
-            archive_url="https://download.gnome.org/sources/libadwaita/1.1/libadwaita-1.1.2.tar.xz",
-            hash="2b5ca4104c21a36e31f900ef117ab887dd9d471f6a65d2ba374ce0339314219f",
+            repository="https://gitlab.gnome.org/GNOME/libadwaita",
+            version="1.6.3",
+            archive_url="https://download.gnome.org/sources/libadwaita/{major}.{minor}/libadwaita-{version}.tar.xz",
+            hash="c88d4516edd1e0fc61be925f414efc340e149171756064473a082b6ae9a5dc00",
             dependencies=[
                 "ninja",
                 "meson",
-                "pkg-config",
+                "msys2",
+                "pkgconf",
                 "glib",
                 "gtk4",
+            ],
+            patches=[
+                "0001-remove-appstream-dependency.patch",
             ],
         )
         gir = "disabled"
@@ -44,7 +47,10 @@ class Libadwaita(Tarball, Meson):
 
         self.add_param(f"-Dintrospection={gir}")
         self.add_param("-Dgtk_doc=false")
+        self.add_param("-Dvapi=false")
+        # https://gitlab.gnome.org/GNOME/libadwaita/-/issues/931
+        self.add_param("-Dtests=false")
 
     def build(self, **kwargs):
-        Meson.build(self, make_tests=True)
+        Meson.build(self)
         self.install(r".\COPYING share\doc\libadwaita")

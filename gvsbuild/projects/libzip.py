@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,8 +24,9 @@ class Libzip(Tarball, CmakeProject):
         Project.__init__(
             self,
             "libzip",
-            archive_url="https://libzip.org/download/libzip-1.9.0.tar.gz",
-            hash="4cab273e28d08424eaa70e3690dbda61c5ea22b3b1754f43568b33d3757fb68f",
+            version="1.11.3",
+            archive_url="https://libzip.org/download/libzip-{version}.tar.gz",
+            hash="76653f135dde3036036c500e11861648ffbf9e1fc5b233ff473c60897d9db0ea",
             dependencies=["cmake", "ninja", "zlib"],
         )
 

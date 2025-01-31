@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -21,24 +19,81 @@ from gvsbuild.utils.base_project import Project, project_add
 
 
 @project_add
-class GLib(Tarball, Meson):
+class GLibBase(Tarball, Meson):
     def __init__(self):
-        Project.__init__(
+        Meson.__init__(
             self,
-            "glib",
-            archive_url="https://download.gnome.org/sources/glib/2.72/glib-2.72.2.tar.xz",
-            hash="78d599a133dba7fe2036dfa8db8fb6131ab9642783fc9578b07a20995252d2de",
-            dependencies=["ninja", "meson", "pkg-config", "gettext", "libffi", "zlib"],
+            "glib-base",
+            version="2.82.4",
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/glib",
+            archive_url="https://download.gnome.org/sources/glib/{major}.{minor}/glib-{version}.tar.xz",
+            hash="37dd0877fe964cd15e9a2710b044a1830fb1bd93652a6d0cb6b8b2dff187c709",
+            dependencies=[
+                "ninja",
+                "meson",
+                "pkgconf",
+                "gettext",
+                "libffi",
+                "zlib",
+                "pcre2",
+            ],
             patches=[
-                "glib-package-installation-directory.patch",
-                "0002-pcre-add-fallback-url.patch",
-                "0001-Fix-global-and-local-variables-hidden-by-local-varia.patch",
+                "001-glib-package-installation-directory.patch",
+                "002-gsocket-windows-check-event-before-calling-WSAEnumNe.patch",
+                "003-gpoll-windows-use-a-threadpool-when-polling-large-nu.patch",
+                # https://gitlab.gnome.org/GNOME/glib/-/merge_requests/4391
+                "004-fix-python-path-can-contain-spaces.patch",
             ],
         )
+        self.add_param("-Dman-pages=disabled")
+        self.add_param("-Dtests=false")
+        self.add_param("-Ddocumentation=false")
+        self.add_param("-Dintrospection=disabled")
+        self.add_param("-Dsysprof=disabled")
 
     def build(self):
-        Meson.build(self)
-        self.install(r".\COPYING share\doc\glib")
+        build_debug = (
+            "enabled" if self.builder.opts.configuration == "debug" else "disabled"
+        )
+        Meson.build(self, meson_params=f"-Dglib_debug={build_debug}")
+        self.install(r".\LICENSES\* share\doc\glib")
+
+
+@project_add
+class GLib(Tarball, Meson):
+    def __init__(self):
+        Meson.__init__(
+            self,
+            "glib",
+            version="2.82.4",
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/glib",
+            archive_url="https://download.gnome.org/sources/glib/{major}.{minor}/glib-{version}.tar.xz",
+            hash="37dd0877fe964cd15e9a2710b044a1830fb1bd93652a6d0cb6b8b2dff187c709",
+            dependencies=["glib-base"],
+            patches=[
+                "001-glib-package-installation-directory.patch",
+                "002-gsocket-windows-check-event-before-calling-WSAEnumNe.patch",
+                "003-gpoll-windows-use-a-threadpool-when-polling-large-nu.patch",
+                # https://gitlab.gnome.org/GNOME/glib/-/merge_requests/4391
+                "004-fix-python-path-can-contain-spaces.patch",
+            ],
+        )
+        self.add_param("-Dman-pages=disabled")
+        self.add_param("-Dtests=false")
+        self.add_param("-Ddocumentation=false")
+        self.add_param("-Dsysprof=disabled")
+        if self.opts.enable_gi:
+            self.add_dependency("gobject-introspection")
+            self.add_param("-Dintrospection=enabled")
+
+    def build(self):
+        if self.opts.enable_gi:
+            build_debug = (
+                "enabled" if self.builder.opts.configuration == "debug" else "disabled"
+            )
+            Meson.build(self, meson_params=f"-Dglib_debug={build_debug}")
 
 
 @project_add
@@ -47,17 +102,26 @@ class GLibNetworking(Tarball, Meson):
         Project.__init__(
             self,
             "glib-networking",
-            archive_url="https://download.gnome.org/sources/glib-networking/2.72/glib-networking-2.72.0.tar.xz",
-            hash="100aaebb369285041de52da422b6b716789d5e4d7549a3a71ba587b932e0823b",
-            dependencies=["pkg-config", "ninja", "meson", "glib", "openssl"],
-            patches=[
-                "0001-Mark-strings-for-translation-and-translate-just-in-e.patch",
-                "0002-tlslog-add-meson-config-setting-to-log-at-debug-leve.patch",
+            version="2.80.1",
+            lastversion_even=True,
+            repository="https://gitlab.gnome.org/GNOME/glib-networking",
+            archive_url="https://download.gnome.org/sources/glib-networking/{major}.{minor}/glib-networking-{version}.tar.xz",
+            hash="b80e2874157cd55071f1b6710fa0b911d5ac5de106a9ee2a4c9c7bee61782f8e",
+            dependencies=[
+                "pkgconf",
+                "ninja",
+                "meson",
+                "glib",
+                "openssl",
+                "gsettings-desktop-schemas",
             ],
+            patches=[],
         )
 
     def build(self):
-        Meson.build(self, meson_params="-Dgnutls=disabled -Dopenssl=enabled")
+        Meson.build(
+            self, meson_params="-Dgnutls=disabled -Dopenssl=enabled -Dlibproxy=disabled"
+        )
         self.install(r".\COPYING share\doc\glib-networking")
         self.install(r".\LICENSE_EXCEPTION share\doc\glib-networking")
 
@@ -70,6 +134,8 @@ class GLibPyWrapper(NullExpander, Meson):
             "glib-py-wrapper",
             dependencies=["glib"],
             version="0.1.0",
+            internal=True,
+            repository="https://gitlab.gnome.org/GNOME/glib-py-wrapper",
         )
 
     def build(self):

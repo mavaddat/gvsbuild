@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,9 +24,11 @@ class Protobuf(Tarball, CmakeProject):
         Project.__init__(
             self,
             "protobuf",
-            archive_url="https://github.com/protocolbuffers/protobuf/releases/download/v3.15.8/protobuf-cpp-3.15.8.tar.gz",
-            hash="9b57647b898e45253c98fae35146f6a5e9e788817d29019f9280270c951a0038",
+            version="25.1",
+            archive_url="https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.tar.gz",
+            hash="9bd87b8280ef720d3240514f884e56a712f2218f0d693b48050c836028940a42",
             dependencies=[
+                "abseil-cpp",
                 "cmake",
                 "zlib",
                 "ninja",
@@ -39,9 +39,8 @@ class Protobuf(Tarball, CmakeProject):
         # We need to compile with STATIC_RUNTIME off since protobuf-c also compiles with it OFF
         CmakeProject.build(
             self,
-            cmake_params=r'-Dprotobuf_DEBUG_POSTFIX="" -Dprotobuf_BUILD_TESTS=OFF -Dprotobuf_WITH_ZLIB=ON -Dprotobuf_MSVC_STATIC_RUNTIME=OFF',
+            cmake_params=r'-DBUILD_SHARED_LIBS=ON -Dprotobuf_ABSL_PROVIDER=package -Dprotobuf_DEBUG_POSTFIX="" -Dprotobuf_BUILD_TESTS=OFF -Dprotobuf_WITH_ZLIB=ON -Dprotobuf_MSVC_STATIC_RUNTIME=OFF',
             use_ninja=True,
-            source_part="cmake",
         )
 
         self.install(r".\LICENSE share\doc\protobuf")
@@ -53,17 +52,27 @@ class ProtobufC(Tarball, CmakeProject):
         Project.__init__(
             self,
             "protobuf-c",
-            archive_url="https://github.com/protobuf-c/protobuf-c/releases/download/v1.3.3/protobuf-c-1.3.3.tar.gz",
-            hash="22956606ef50c60de1fabc13a78fbc50830a0447d780467d3c519f84ad527e78",
+            version="1.5.0",
+            archive_url="https://github.com/protobuf-c/protobuf-c/releases/download/v{version}/protobuf-c-{version}.tar.gz",
+            hash="7b404c63361ed35b3667aec75cc37b54298d56dd2bcf369de3373212cc06fd98",
             dependencies=[
+                "abseil-cpp",
                 "cmake",
                 "protobuf",
                 "ninja",
             ],
+            patches=[
+                "0001-CMakeList.txt-Remove-double-dashes.patch",
+            ],
         )
 
     def build(self):
-        CmakeProject.build(self, use_ninja=True, source_part="build-cmake")
+        CmakeProject.build(
+            self,
+            cmake_params="-DBUILD_SHARED_LIBS=ON",
+            use_ninja=True,
+            source_part="build-cmake",
+        )
 
         self.install(r".\LICENSE share\doc\protobuf-c")
         self.install_pc_files()

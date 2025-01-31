@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -25,7 +23,8 @@ class Enchant(Tarball, Project):
         Project.__init__(
             self,
             "enchant",
-            archive_url="https://dl.hexchat.net/gtk-win32/src/enchant-1.6.1.tar.xz",
+            version="1.6.1",
+            archive_url="https://dl.hexchat.net/gtk-win32/src/enchant-{version}.tar.xz",
             hash="d6cddd2621589ca8becaba1bfe8d3668f7d6592743664ef0e1a35543971fbe6e",
             dependencies=["glib"],
         )

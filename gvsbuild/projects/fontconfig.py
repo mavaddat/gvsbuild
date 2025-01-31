@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,10 +24,14 @@ class Fontconfig(Tarball, Meson):
         Project.__init__(
             self,
             "fontconfig",
-            archive_url="https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.14.0.tar.gz",
-            hash="b8f607d556e8257da2f3616b4d704be30fd73bd71e367355ca78963f9a7f0434",
-            dependencies=["freetype", "libxml2"],
+            version="2.16.0",
+            lastversion_even=True,
+            repository="https://gitlab.freedesktop.org/fontconfig/fontconfig",
+            archive_url="https://www.freedesktop.org/software/fontconfig/release/fontconfig-{version}.tar.xz",
+            hash="6a33dc555cc9ba8b10caf7695878ef134eeb36d0af366041f639b1da9b6ed220",
+            dependencies=["freetype", "gperf", "expat"],
         )
+        self.add_param("-Dtests=disabled")
 
     def build(self):
         Meson.build(self)

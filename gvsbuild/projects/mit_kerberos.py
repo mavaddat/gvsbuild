@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -27,8 +25,10 @@ class Kerberos(Tarball, Project):
         Project.__init__(
             self,
             "mit-kerberos",
-            archive_url="https://github.com/krb5/krb5/archive/refs/tags/krb5-1.19.3-final.tar.gz",
-            hash="131890da54fff2ac339e93facf9d8067f7db53b15181f38104c0b56a6f2acdee",
+            version="1.21.3",
+            repository="https://github.com/krb5/krb5",
+            archive_url="https://github.com/krb5/krb5/archive/refs/tags/krb5-{version}-final.tar.gz",
+            hash="2157d92020d408ed63ebcd886a92d1346a1383b0f91123a0473b4f69b4a24861",
             dependencies=[
                 "perl",
             ],

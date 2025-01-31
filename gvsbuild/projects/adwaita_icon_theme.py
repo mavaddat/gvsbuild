@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,40 +15,39 @@
 
 import os
 
+from gvsbuild.utils.base_builders import Meson
 from gvsbuild.utils.base_expanders import Tarball
-from gvsbuild.utils.base_project import Project, project_add
+from gvsbuild.utils.base_project import project_add
 
 
 @project_add
-class AdwaitaIconTheme(Tarball, Project):
+class AdwaitaIconTheme(Tarball, Meson):
     def __init__(self):
-        Project.__init__(
+        Meson.__init__(
             self,
             "adwaita-icon-theme",
-            archive_url="https://download.gnome.org/sources/adwaita-icon-theme/42/adwaita-icon-theme-42.0.tar.xz",
-            hash="5e85b5adc8dee666900fcaf271ba717f7dcb9d0a03d96dae08f9cbd27e18b1e0",
+            version="47.0",
+            repository="https://gitlab.gnome.org/GNOME/adwaita-icon-theme",
+            archive_url="https://download.gnome.org/sources/adwaita-icon-theme/{major}/adwaita-icon-theme-{version}.tar.xz",
+            hash="ad088a22958cb8469e41d9f1bba0efb27e586a2102213cd89cc26db2e002bdfe",
             dependencies=[
+                "hicolor-icon-theme",
                 "librsvg",
-                "python",
             ],
         )
 
     def build(self):
-        # Create the destination dir, before the build
-        os.makedirs(
-            os.path.join(self.builder.gtk_dir, "share", "icons", "Adwaita"),
-            exist_ok=True,
+        Meson.build(self)
+        # Work around for https://gitlab.gnome.org/GNOME/adwaita-icon-theme/-/issues/282
+        self.builder.exec_msys(
+            [
+                "cp",
+                "--remove-destination",
+                "places/folder.svg",
+                "status/folder-open.svg",
+            ],
+            working_dir=os.path.join(
+                self.builder.gtk_dir, "share", "icons", "Adwaita", "scalable"
+            ),
         )
-
-        self.push_location(r".\win32")
-        self.exec_vs(
-            r'nmake /nologo /f adwaita-msvc.mak CFG=%(configuration)s PYTHON="%(python_dir)s\python.exe" PREFIX="%(gtk_dir)s"',
-            add_path=os.path.join(self.builder.opts.msys_dir, "usr", "bin"),
-        )
-        self.exec_vs(
-            r'nmake /nologo /f adwaita-msvc.mak install CFG=%(configuration)s PYTHON="%(python_dir)s\python.exe" PREFIX="%(gtk_dir)s"',
-            add_path=os.path.join(self.builder.opts.msys_dir, "usr", "bin"),
-        )
-        self.pop_location()
-
         self.install(r".\COPYING_CCBYSA3 share\doc\adwaita-icon-theme")

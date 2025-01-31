@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,9 +24,10 @@ class Harfbuzz(Tarball, Meson):
         Project.__init__(
             self,
             "harfbuzz",
-            archive_url="https://github.com/harfbuzz/harfbuzz/releases/download/4.3.0/harfbuzz-4.3.0.tar.xz",
-            hash="a49628f4c4c8e6d8df95ef44935a93446cf2e46366915b0e3ca30df21fffb530",
-            dependencies=["meson", "cmake", "python", "freetype", "pkg-config", "glib"],
+            version="10.2.0",
+            archive_url="https://github.com/harfbuzz/harfbuzz/releases/download/{version}/harfbuzz-{version}.tar.xz",
+            hash="620e3468faec2ea8685d32c46a58469b850ef63040b3565cde05959825b48227",
+            dependencies=["meson", "cmake", "freetype", "cairo", "pkgconf", "glib"],
         )
 
         if Project.opts.enable_gi:
@@ -36,6 +35,9 @@ class Harfbuzz(Tarball, Meson):
             self.add_param("-Dintrospection=enabled")
         else:
             self.add_param("-Dintrospection=disabled")
+
+        self.add_param("-Ddirectwrite=enabled")
+        self.add_param("-Dgdi=enabled")
 
     def build(self):
         Meson.build(self)

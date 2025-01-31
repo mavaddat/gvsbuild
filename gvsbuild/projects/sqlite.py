@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -25,8 +23,9 @@ class SQLite(Tarball, Project):
         Project.__init__(
             self,
             "sqlite",
-            archive_url="https://www.sqlite.org/2020/sqlite-autoconf-3310100.tar.gz",
-            hash="62284efebc05a76f909c580ffa5c008a7d22a1287285d68b7825a2b6b51949ae",
+            version="3.48.0",
+            archive_url="https://www.sqlite.org/2025/sqlite-autoconf-{major}{minor:0<3}{micro:0<3}.tar.gz",
+            hash="ac992f7fca3989de7ed1fe99c16363f848794c8c32a158dafd4eb927a2e02fd5",
         )
 
     def build(self):

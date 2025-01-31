@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -28,7 +26,7 @@ class Libyuv(GitRepo, CmakeProject):
             "libyuv",
             repo_url="https://chromium.googlesource.com/libyuv/libyuv",
             fetch_submodules=False,
-            tag="93b1b332cd60b56ab90aea14182755e379c28a80",
+            tag="464c51a03",
             dependencies=[
                 "cmake",
                 "ninja",

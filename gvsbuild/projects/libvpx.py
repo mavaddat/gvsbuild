@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -28,9 +26,11 @@ class Libvpx(Tarball, Project):
         Project.__init__(
             self,
             "libvpx",
-            archive_url="https://github.com/webmproject/libvpx/archive/v1.10.0.tar.gz",
-            hash="85803ccbdbdd7a3b03d930187cb055f1353596969c1f92ebec2db839fa4f834a",
-            dependencies=["yasm", "msys2", "libyuv", "perl"],
+            version="1.15.0",
+            archive_url="https://github.com/webmproject/libvpx/archive/v{version}.tar.gz",
+            archive_filename="libvpx-v{version}.tar.gz",
+            hash="e935eded7d81631a538bfae703fd1e293aad1c7fd3407ba00440c95105d2011e",
+            dependencies=["nasm", "msys2", "libyuv", "perl"],
             patches=[
                 "0006-gen_msvs_vcxproj.sh-Select-current-Windows-SDK-if-av.patch",
                 "0001-Always-generate-pc-file.patch",
@@ -39,7 +39,7 @@ class Libvpx(Tarball, Project):
 
     def build(self):
         configure_options = (
-            "--enable-pic --as=yasm --disable-unit-tests --size-limit=16384x16384 "
+            "--enable-pic --as=nasm --disable-unit-tests --size-limit=16384x16384 "
             "--enable-postproc --enable-multi-res-encoding --enable-temporal-denoising "
             "--enable-vp9-temporal-denoising --enable-vp9-postproc --disable-tools "
             "--disable-examples --disable-docs "
@@ -53,13 +53,7 @@ class Libvpx(Tarball, Project):
         msys_path = Project.get_tool_path("msys2")
 
         self.exec_vs(
-            r"%s\bash ./configure --target=%s --prefix=%s %s"
-            % (
-                msys_path,
-                target,
-                convert_to_msys(self.builder.gtk_dir),
-                configure_options,
-            ),
+            rf"{msys_path}\bash ./configure --target={target} --prefix={convert_to_msys(self.builder.gtk_dir)} {configure_options}",
             add_path=msys_path,
         )
         self.exec_vs(r"make", add_path=msys_path)

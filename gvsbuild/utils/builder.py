@@ -1,6 +1,4 @@
-#  Copyright (C) 2016 - Yevgen Muntyan
-#  Copyright (C) 2016 - Ignacio Casal Quinteiro
-#  Copyright (C) 2016 - Arnavion
+#  Copyright (C) 2016 The Gvsbuild Authors
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -27,6 +25,7 @@ import re
 import shutil
 import ssl
 import subprocess
+import sys
 import time
 import traceback
 from pathlib import Path
@@ -79,6 +78,10 @@ class Builder:
                     f"Removing git expand dir ({self.opts.git_expand_dir})"
                 ):
                     rmtree_full(self.opts.git_expand_dir, retry=True)
+                with log.simple_oper(
+                    f"Removing archives download dir ({opts.archives_download_dir})"
+                ):
+                    rmtree_full(opts.archives_download_dir)
                 if not opts.keep_tools:
                     with log.simple_oper(f"Removing tools dir ({opts.tools_root_dir})"):
                         rmtree_full(opts.tools_root_dir, retry=True)
@@ -128,10 +131,7 @@ class Builder:
     def _create_msbuild_opts(self, python):
         rt = [f"/nologo /p:Platform={self.opts.platform}"]
         if python:
-            rt.append(
-                '/p:PythonPath="%(python_dir)s" /p:PythonDir="%(python_dir)s"'
-                % dict(python_dir=python)
-            )
+            rt.append(f'/p:PythonPath="{python}" /p:PythonDir="{python}"')
 
         if log.verbose_on():
             rt.append("/v:normal")
@@ -225,15 +225,25 @@ class Builder:
     def __check_tools(self, opts):
         script_title("* Msys tool")
         log.start("Checking msys tool")
-        msys_path = Path(opts.msys_dir)
-        if not Path.exists(msys_path):
-            msys_paths = [
-                Path(r"C:\msys64"),
-                Path(r"C:\msys32"),
-                Path(r"C:\tools\msys64"),
-                Path(r"C:\tools\msys32"),
+        msys_path = opts.msys_dir
+        if not msys_path or not Path.exists(msys_path):
+            drive_letters = ("C:", "D:", "E:", "F:")
+            possible_drives = [
+                drive for drive in drive_letters if os.path.exists(drive)
             ]
-            for path in msys_paths:
+            possible_paths = [
+                r"\msys64",
+                r"\tools\msys64",
+                r"\msys32",
+                r"\tools\msys32",
+            ]
+            all_possible_paths = [
+                Path(drive + path)
+                for drive in possible_drives
+                for path in possible_paths
+            ]
+
+            for path in all_possible_paths:
                 if Path.exists(path):
                     msys_path = path
                     self.opts.msys_dir = str(msys_path)
@@ -256,8 +266,7 @@ class Builder:
             # oops
             cmd = "pacman -S " + " ".join(missing)
             log.error_exit(
-                "Missing package(s) from msys2 installation, try with\n    '%s'\nin a msys2 shell."
-                % (cmd,)
+                f"Missing package(s) from msys2 installation, try with\n    '{cmd}'\nin a msys2 shell."
             )
 
         self.patch = msys_path / "usr" / "bin" / "patch.exe"
@@ -267,11 +276,6 @@ class Builder:
             )
 
         log.debug(f"patch: {self.patch}")
-
-        if opts.python_dir and not Path.is_file(Path(opts.python_dir) / "python.exe"):
-            log.error_exit(
-                f"Executable python.exe not found at '{self.opts.python_dir}'"
-            )
         log.end()
 
     def _add_env(self, key, value, env, prepend=True, subst=False):
@@ -313,7 +317,7 @@ class Builder:
                     del self.vs_env[key]
 
     def __dump_vs_loc(self):
-        vswhere = r"%s\Microsoft Visual Studio\Installer\vswhere.exe" % (
+        vswhere = r"{}\Microsoft Visual Studio\Installer\vswhere.exe".format(
             os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
         )
         log.log("Trying to find Visual Studio installations ...")
@@ -321,21 +325,17 @@ class Builder:
             log.log(f"Could not find vswhere executable ({vswhere})")
             return
 
-        json_file = "vs-found.json"
-        if os.path.exists(json_file):
-            os.remove(json_file)
-
-        cmd = f'"{vswhere}" -all -products * -format json >{json_file}'
-        self.exec_cmd(cmd)
-
+        completed_process = subprocess.run(
+            [f"{vswhere}", "-all", "-products", "*", "-format", "json", "-utf8"],
+            capture_output=True,
+            encoding="utf-8",
+        )
         try:
-            with open(json_file) as fi:
-                vs_installs = json.load(fi)
-        except (IOError, OSError) as e:
-            log.log(f"Exception reading vswhere result file ({e})")
-
-        if vs_installs:
+            completed_process.check_returncode()
+            vs_installs = json.loads(completed_process.stdout)
             return self.__extract_paths(vs_installs)
+        except subprocess.CalledProcessError as e:
+            log.log(f"Unable to call vswhere.exe to find Visual Studio with error {e}")
 
     def __extract_paths(self, res):
         log.message("")
@@ -379,24 +379,27 @@ class Builder:
 
             self.__dump_vs_loc()
             log.error_exit(
-                "\n  '%s' could not be found.\n  Please check you have Visual Studio installed at '%s'\n  and that it supports the target platform '%s'."
-                % (vcvars_bat, vs_path, opts.platform)
+                f"\n  {vcvars_bat} could not be found.\n  Please check you have Visual Studio installed at {vs_path}\n  and that it supports the target platform {opts.platform}."
             )
         return subprocess.check_output(
-            'cmd.exe /c ""%s"%s>NUL && set"'
-            % (
-                vcvars_bat,
-                add_opts,
-            ),
-            shell=True,
-            text=True,
+            f'cmd.exe /c ""{vcvars_bat}"{add_opts}>NUL && set"', text=True
         )
 
-    def __find_vs_path_with_vs_version(self, paths):
+    def __find_vs_paths_with_vs_version(self, paths):
+        # Don't match version with data (e.g. vs version 17 with vs 2017)
+        vs_ver_re = re.compile("[^0-9]" + self.opts.vs_ver)
+
+        vs_paths = []
         for path in paths:
-            if self.vs_ver_year[-4:] in path or self.opts.vs_ver in path:
-                return path
-        log.debug(f"Can't find vs-ver {self.opts.vs_ver} in found VS installations.")
+            if self.vs_ver_year[-4:] in path or vs_ver_re.search(path):
+                vs_paths.append(path)
+
+        if len(vs_paths) == 0:
+            log.debug(
+                f"Can't find vs-ver {self.opts.vs_ver} in found VS installations."
+            )
+
+        return vs_paths
 
     def __check_vs(self, opts):
         script_title("* Msvc tool")
@@ -408,12 +411,23 @@ class Builder:
         self.add_global_env("LIBPATH", os.path.join(self.gtk_dir, "lib"))
         self.add_global_env("PATH", os.path.join(self.gtk_dir, "bin"))
 
-        if not opts.vs_install_path:
-            opts.vs_install_path = self.__find_vs_path_with_vs_version(
-                self.__dump_vs_loc()
+        if opts.vs_install_path:
+            vs_paths = [opts.vs_install_path]
+        else:
+            vs_paths = self.__find_vs_paths_with_vs_version(self.__dump_vs_loc())
+
+        output = None
+        for path in vs_paths:
+            output = self.__check_good_vs_install(opts, path, False)
+            if output is not None:
+                log.message(f"Using Visual Studio at {path}")
+                break
+
+        if output is None:
+            log.error_exit(
+                "Unable to find Visual Studio, try using --vs-ver or --vs-install-path "
+                "to specify Visual Studio version or install location"
             )
-        log.message(f"Using Visual Studio at {opts.vs_install_path}")
-        output = self.__check_good_vs_install(opts, opts.vs_install_path, True)
 
         self.vs_env = {}
         dbg = log.debug_on()
@@ -456,8 +470,8 @@ class Builder:
     def preprocess(self):
         for proj in Project.list_projects():
             if proj.archive_url:
-                if proj.archive_file_name:
-                    archive = proj.archive_file_name
+                if proj.archive_filename:
+                    archive = proj.archive_filename
                 else:
                     url = proj.archive_url
                     archive = url[url.rfind("/") + 1 :]
@@ -475,6 +489,8 @@ class Builder:
             proj.mark_file_calc()
             if self.opts.clean:
                 proj.clean = True
+            if self.opts.extra_opts and proj.name in self.opts.extra_opts:
+                proj.extra_opts = self.opts.extra_opts[proj.name]
 
         for proj in Project.list_projects():
             self.__compute_deps(proj)
@@ -517,7 +533,7 @@ class Builder:
         if self.opts.check_hash:
             return
 
-        # List of all the project we can mark for build because of a dependend
+        # List of all the project we can mark for build because of a dependent
         self.prj_to_mark = [x for x in Project._projects if x.is_project()]
 
         self.prj_done = []
@@ -535,11 +551,7 @@ class Builder:
                 if self.__build_one(p):
                     self.prj_skipped.append(p.name)
                 else:
-                    msg = "%-*s (%.3f s)" % (
-                        Project.name_len,
-                        p.name,
-                        time.time() - st,
-                    )
+                    msg = f"{p.name:{Project.name_len}} ({time.time() - st:.3f})"
                     self.prj_done.append(msg)
             except KeyboardInterrupt:
                 traceback.print_exc()
@@ -547,7 +559,7 @@ class Builder:
             except Exception:
                 traceback.print_exc()
                 log.end(mark_error=True)
-                if self.opts.keep:
+                if self.opts.keep_going:
                     self.prj_err.append(p.name)
                     self._drop_proj(p)
                 else:
@@ -581,8 +593,7 @@ class Builder:
                     log.message(f"    {p}")
                 miss += len(self.prj_dropped)
 
-            # Don't fool appveyor
-            log.error_exit("%u project(s) missing ;(" % (miss,))
+            log.error_exit("%d project(s) missing ;(")
 
         log.close()
 
@@ -762,13 +773,8 @@ class Builder:
         if hasattr(proj, "hash"):
             hc = self.__hashfile(proj.archive_file)
             if hc != proj.hash:
-                log.message(
-                    "Hash mismatch on %s:\n  Calculated '%s'\n  Expected   '%s'\n"
-                    % (
-                        proj.archive_file,
-                        hc,
-                        proj.hash,
-                    )
+                log.error_exit(
+                    f"Hash mismatch on {proj.archive_file}:\n  Calculated '{hc}'\n  Expected   '{proj.hash}'\n"
                 )
                 return True
 
@@ -787,21 +793,14 @@ class Builder:
             if perc != self._old_perc:
                 perc = min(perc, 100)
                 self._old_perc = perc
-                sp = "%s (%u k) - %u%%" % (
-                    self._downloading_file,
-                    total_size / 1024,
-                    self._old_perc,
-                )
+                sp = f"{self._downloading_file} ({total_size // 1024} kB) - {self._old_perc:.0f}%"
                 print(sp, end="\r")
                 if len(sp) > self._old_print:
                     # Save the len to delete the line when we change file
                     self._old_print = len(sp)
         else:
             # Only the current, we don't know the size
-            sp = "%s - %u k" % (
-                self._downloading_file,
-                c_size / 1024,
-            )
+            sp = f"{self._downloading_file} - {c_size // 1024} kB"
             print(sp, end="\r")
             if len(sp) > self._old_print:
                 self._old_print = len(sp)
@@ -826,14 +825,7 @@ class Builder:
         msg = f"Opening {url} ..."
         print(msg, end="\r")
         with contextlib.closing(urlopen(url, None, context=ssl_ctx)) as fp:
-            print(
-                "%*s"
-                % (
-                    len(msg),
-                    "",
-                ),
-                end="\r",
-            )
+            print(f"{'':>{len(msg)}}", end="\r")
             headers = fp.info()
 
             with open(filename, "wb") as tfp:
@@ -859,7 +851,7 @@ class Builder:
 
         if size >= 0 and read < size:
             raise ContentTooShortError(
-                "retrieval incomplete: got only %i out of %i bytes" % (read, size),
+                f"retrieval incomplete: got only {read} out of {size} bytes",
                 result,
             )
 
@@ -909,31 +901,27 @@ class Builder:
                 raise
         log.end()
 
-        print(
-            "%-*s" % (self._old_print, f"{proj.archive_file} - Download finished"),
-        )
+        print(f"{proj.archive_file:{self._old_print}} - Download finished")
         return self.__check_hash(proj)
 
     def __sub_vars(self, s):
         if "%" not in s:
             return s
-        d = dict(
-            platform=self.opts.platform,
-            configuration=self.opts.configuration,
-            build_dir=self.opts.build_dir,
-            vs_ver=self.opts.vs_ver,
-            gtk_dir=self.gtk_dir,
-            vs_ver_year=self.vs_ver_year,
-        )
+        d = {
+            "platform": self.opts.platform,
+            "configuration": self.opts.configuration,
+            "build_dir": self.opts.build_dir,
+            "vs_ver": self.opts.vs_ver,
+            "gtk_dir": self.gtk_dir,
+            "vs_ver_year": self.vs_ver_year,
+        }
         python = None
         if self.__project is not None:
             d["pkg_dir"] = self.__project.pkg_dir
             d["build_dir"] = self.__project.build_dir
-            # Add python & perl only if the project depends on them
-            p = Project.get_project("python")
-            if p in self.__project.all_dependencies:
-                python = Project.get_tool_path(p)
-                d["python_dir"] = python
+            python = Path(sys.executable).parent
+            d["python_dir"] = python
+            # Add perl only if the project depends on them
 
             p = Project.get_project("perl")
             if p in self.__project.all_dependencies:
@@ -951,7 +939,9 @@ class Builder:
             env=self.vs_env,
         )
 
-    def exec_cargo(self, params="", working_dir=None, rustc_opts=None):
+    def exec_cargo(
+        self, params="", working_dir=None, rustc_opts=None, rust_version="stable"
+    ):
         cmd = "cargo"
         if self.opts.cargo_opts:
             cmd += f" {self.opts.cargo_opts}"
@@ -969,7 +959,7 @@ class Builder:
         # set platform
         rustup = os.path.join(cargo_home, "rustup.exe")
         self.__execute(
-            f'{rustup} default stable-{"i686" if self.x86 else "x86_64"}-pc-windows-msvc',
+            f"{rustup} default {rust_version}-{'i686' if self.x86 else 'x86_64'}-pc-windows-msvc",
             env=env,
         )
 
